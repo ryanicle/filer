@@ -13,7 +13,8 @@ config([
   function($routeProvider, flowFactoryProvider) {
 
   flowFactoryProvider.defaults = {
-    target: 'upload.php',
+    target: 'http://flowjs.github.io/ng-flow/',
+    method: 'octet',
     permanentErrors: [404, 500, 501],
     maxChunkRetries: 1,
     chunkRetryInterval: 5000,
