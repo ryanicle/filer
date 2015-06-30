@@ -24,6 +24,28 @@ config([
     console.log('catchAll', arguments);
   });
 
+  flowFactoryProvider.on('fileAdded', function(file, event){
+    console.log('fileAdded', file, event);
+    
+    // Initiate Upload
+    var initXhr = new XMLHttpRequest();
+    var initUrl = '/rest/folders/65/actions/initiateUpload';
+    var initData = JSON.stringify({filename: file.name, totalSize: file.size, totalChunks: file.chunks.length});
+    initXhr.open('POST', initUrl, true);
+    initXhr.send(initData);
+
+    // Get Upload URL
+    var uploadXhr = new XMLHttpRequest();
+    var uploadUrl = '/rest/uploads/93';
+    uploadXhr.open('GET', uploadUrl, true);
+    uploadXhr.send(JSON.stringify({}));
+    var uploadLocation = uploadXhr.getResponseHeader('x-accellion-location');
+
+    // Upload File Chunk
+    file.flowObj.defaults.target = '/hey/hey/hey';
+    console.log('UPLOAD', file);
+  });
+
   $routeProvider.when(
     '/upload', 
     {
