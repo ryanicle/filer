@@ -16,7 +16,8 @@ config([
     maxChunkRetries: 1,
     chunkRetryInterval: 5000,
     simultaneousUploads: 1,
-    testMethod: false
+    testMethod: false,
+    chunkSize: 16*1024*1024
   };
   flowFactoryProvider.on('catchAll', function (event) {
     console.log('catchAll', arguments);
