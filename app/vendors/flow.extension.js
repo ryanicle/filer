@@ -10,7 +10,7 @@ window.Flow.FlowChunk.prototype.getParams = function () {
       // flowRelativePath: this.fileObj.relativePath,
       // flowTotalChunks: this.fileObj.chunks.length,
       compressionMode: 'NORMAL',
-      compressionSize: this.fileObjSize,
+      compressionSize: 0,
       originalSize: this.fileObjSize,
       content: 'Blah Blah'
     };
