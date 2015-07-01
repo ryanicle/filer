@@ -17,7 +17,8 @@ config([
     chunkRetryInterval: 5000,
     simultaneousUploads: 1,
     testMethod: false,
-    chunkSize: 16*1024*1024
+    chunkSize: 3 * 1024 * 1024,
+    forceChunkSize: true
   };
   flowFactoryProvider.on('catchAll', function (event) {
     console.log('catchAll', arguments);
@@ -34,8 +35,7 @@ config([
 .controller('TestController', ['$scope', '$http', function($scope, $http) {
 
   $scope.initUpload = function (file, event, flow) {
-    console.log('fileAdded2', file, flow);
-    var mainHeaders = {'x-xsrf-token': '55f389c9ba1f5f15fd6ead446acdc7f145909e5f'};
+    var mainHeaders = {'x-xsrf-token': '47b3bfd9176426902eeec515cae8cf39ff56e327'};
     $http({
       method: 'POST',
       url: '/rest/folders/65/actions/initiateUpload',
@@ -56,7 +56,6 @@ config([
     }).error(function(data, status, headers, config) {
 
     });
-    console.log('fileAdded3', file, flow);
   };
 
   $scope.uploadStart = function(file, event, flow) {
