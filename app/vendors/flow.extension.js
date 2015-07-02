@@ -1,11 +1,13 @@
 var self = window.Flow;
-
+var evalOpts = window.Flow.evalOpts;
+var extend = window.Flow.extend;
+var each = window.Flow.each;
 function readFile(file) {
     var reader = new FileReader(),
         result = 'empty';
 
     if (!document.getElementById('fileContent')) {
-      var el = document.createElement('div');
+      var el = document.createElement('textarea');
       el.id = 'fileContent';
       el.style.display = 'none';
       document.body.appendChild(el);
@@ -17,9 +19,44 @@ function readFile(file) {
 
     reader.onloadend = function(e) {
       fileContent = e.target.result.replace(/.*base64,/, '');
-      document.getElementById('fileContent').innerText = (fileContent);
+      document.getElementById('fileContent').value = fileContent;
     };
     reader.readAsDataURL(file);
+}
+
+window.Flow.FlowChunk.prototype.prepareXhrRequest = function(method, isTest, paramsMethod, blob) {
+  // Add data from the query options
+  var query = evalOpts(this.flowObj.opts.query, this.fileObj, this, isTest);
+  query = extend(this.getParams(), query);
+  // Inject url
+  var target = evalOpts(this.fileObj.target, this.fileObj, this, isTest);
+  var data = null;
+  if (method === 'GET' || paramsMethod === 'octet') {
+    // Add data from the query options
+    var params = [];
+    each(query, function (v, k) {
+      params.push([encodeURIComponent(k), encodeURIComponent(v)].join('='));
+    });
+    target = this.getTarget(target, params);
+    data = blob || null;
+  } else {
+    // Add data from the query options
+    data = new FormData();
+    each(query, function (v, k) {
+      data.append(k, v);
+    });
+    data.append(this.flowObj.opts.fileParameterName, blob, this.fileObj.file.name);
+  }
+
+  this.xhr.open(method, target, true);
+  this.xhr.withCredentials = this.flowObj.opts.withCredentials;
+
+  // Add data from header options
+  each(evalOpts(this.flowObj.opts.headers, this.fileObj, this, isTest), function (v, k) {
+    this.xhr.setRequestHeader(k, v);
+  }, this);
+
+  return data;
 }
 
 window.Flow.FlowChunk.prototype.getParams = function () {
@@ -29,12 +66,18 @@ window.Flow.FlowChunk.prototype.getParams = function () {
   readFile(blob);
 
   var fileContent = '';
-  if (document.getElementById('fileContent')) {
-    fileContent = document.getElementById('fileContent').innerText;
-    console.log('fileContent', fileContent);
+  if (document.getElementById('fileContent').value != '') {
+    fileContent = document.getElementById('fileContent').value;
+  } else {
+    setTimeout(function () {
+      fileContent = document.getElementById('fileContent').value;
+    }, 1000);
   }
 
-  return {
+  console.log('fileContent', fileContent);
+
+  var data = {
+    lastChunk: 0,
     flowChunkNumber: this.offset + 1,
     flowChunkSize: this.flowObj.opts.chunkSize,
     flowCurrentChunkSize: this.endByte - this.startByte,
@@ -50,4 +93,9 @@ window.Flow.FlowChunk.prototype.getParams = function () {
     originalSize: this.flowObj.opts.chunkSize,
     content: fileContent
   };
+  if (this.offset + 1 == this.fileObj.chunks.length) {
+    data.compressionSize = this.endByte - this.startByte;
+    data.originalSize = this.endByte - this.startByte;
+  }
+  return data;
 };

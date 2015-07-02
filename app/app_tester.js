@@ -35,7 +35,7 @@ config([
 .controller('TestController', ['$scope', '$http', function($scope, $http) {
 
   $scope.initUpload = function (file, event, flow) {
-    var mainHeaders = {'x-xsrf-token': '47b3bfd9176426902eeec515cae8cf39ff56e327'};
+    var mainHeaders = {'x-xsrf-token': '2705b86cf638696f10c9a1b8f26c5ab7447b3928'};
     $http({
       method: 'POST',
       url: '/rest/folders/65/actions/initiateUpload',
@@ -48,7 +48,7 @@ config([
         headers: mainHeaders
       }).success(function (data, status, headers, config) {
         console.log('final url', data.uri);
-        flow.opts.target = 'https://ryan-tfa.sd.dev/' + data.uri;
+        file.target = 'https://ryan-tfa.sd.dev/' + data.uri;
         flow.upload();
       }).error(function(data, status, headers, config) {
 
