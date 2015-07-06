@@ -9,7 +9,7 @@ function readFile(file) {
     if (!document.getElementById('fileContent')) {
       var el = document.createElement('textarea');
       el.id = 'fileContent';
-      el.style.display = 'none';
+      // el.style.display = 'none';
       document.body.appendChild(el);
 
       // var mi = document.createElement("input");
@@ -17,7 +17,7 @@ function readFile(file) {
       // mi.setAttribute('value', 'default');
     }
 
-    reader.onloadend = function(e) {
+    reader.onload = function(e) {
       fileContent = e.target.result.replace(/.*base64,/, '');
       document.getElementById('fileContent').value = fileContent;
     };
@@ -60,22 +60,7 @@ window.Flow.FlowChunk.prototype.prepareXhrRequest = function(method, isTest, par
 }
 
 window.Flow.FlowChunk.prototype.getParams = function () {
-  console.log('getParams', this);
-
-  var blob = this.fileObj.file.slice(this.startByte, this.endByte);
-  readFile(blob);
-
-  var fileContent = '';
-  if (document.getElementById('fileContent').value != '') {
-    fileContent = document.getElementById('fileContent').value;
-  } else {
-    setTimeout(function () {
-      fileContent = document.getElementById('fileContent').value;
-    }, 1000);
-  }
-
-  console.log('fileContent', fileContent);
-
+  var fileContent = document.getElementById('fileContent').value;
   var data = {
     lastChunk: 0,
     flowChunkNumber: this.offset + 1,
@@ -98,4 +83,42 @@ window.Flow.FlowChunk.prototype.getParams = function () {
     data.originalSize = this.endByte - this.startByte;
   }
   return data;
+};
+
+window.Flow.FlowChunk.prototype.send = function () {
+  var preprocess = this.flowObj.opts.preprocess;
+  if (typeof preprocess === 'function') {
+    switch (this.preprocessState) {
+      case 0:
+        this.preprocessState = 1;
+        preprocess(this);
+        return;
+      case 1:
+        return;
+    }
+  }
+  // if (this.flowObj.opts.testChunks && !this.tested) {
+  //   this.test();
+  //   return;
+  // }
+
+  this.loaded = 0;
+  this.total = 0;
+  this.pendingRetry = false;
+
+  var func = (this.fileObj.file.slice ? 'slice' :
+    (this.fileObj.file.mozSlice ? 'mozSlice' :
+      (this.fileObj.file.webkitSlice ? 'webkitSlice' :
+        'slice')));
+  var bytes = this.fileObj.file[func](this.startByte, this.endByte, this.fileObj.file.type);
+
+  // Set up request and listen for event
+  this.xhr = new XMLHttpRequest();
+  this.xhr.upload.addEventListener('progress', this.progressHandler, false);
+  this.xhr.addEventListener("load", this.doneHandler, false);
+  this.xhr.addEventListener("error", this.doneHandler, false);
+
+  var uploadMethod = evalOpts(this.flowObj.opts.uploadMethod, this.fileObj, this);
+  var data = this.prepareXhrRequest(uploadMethod, false, this.flowObj.opts.method, bytes);
+  this.xhr.send(data);
 };

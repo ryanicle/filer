@@ -18,10 +18,20 @@ config([
     simultaneousUploads: 1,
     testMethod: false,
     chunkSize: 3 * 1024 * 1024,
-    forceChunkSize: true
+    forceChunkSize: true,
+    preprocess: function (chunk) {
+      var blob = chunk.fileObj.file.slice(chunk.startByte, chunk.endByte);
+      readFile(blob);
+      var timer = setInterval(function () {
+        if (document.getElementById('fileContent').value) {
+          clearInterval(timer);
+          chunk.preprocessFinished();
+        }
+      }, 500);
+    }
   };
   flowFactoryProvider.on('catchAll', function (event) {
-    console.log('catchAll', arguments);
+    // console.log('catchAll', arguments);
   });
 
   $routeProvider.when(
@@ -33,9 +43,11 @@ config([
   $routeProvider.otherwise({redirectTo: '/upload'});
 }])
 .controller('TestController', ['$scope', '$http', function($scope, $http) {
+  $scope.currentFile = '';
 
   $scope.initUpload = function (file, event, flow) {
-    var mainHeaders = {'x-xsrf-token': '2705b86cf638696f10c9a1b8f26c5ab7447b3928'};
+    var mainHeaders = {'x-xsrf-token': 'e9819baa2f30e08748c2dacfb59ac3c70c6e2029'};
+    $scope.currentFile = file;
     $http({
       method: 'POST',
       url: '/rest/folders/65/actions/initiateUpload',
@@ -47,7 +59,7 @@ config([
         method: 'GET',
         headers: mainHeaders
       }).success(function (data, status, headers, config) {
-        console.log('final url', data.uri);
+        // console.log('final url', data.uri);
         file.target = 'https://ryan-tfa.sd.dev/' + data.uri;
         flow.upload();
       }).error(function(data, status, headers, config) {
@@ -59,10 +71,10 @@ config([
   };
 
   $scope.uploadStart = function(file, event, flow) {
-    console.log('uploadStart', flow.defaults);
+    // console.log('uploadStart', flow.defaults);
   };
 
   $scope.complete = function (file, event, flow) {
-    console.log('COMPLETE');
+    document.getElementById('fileContent').value = '';
   };
 }]);;
