@@ -22,7 +22,7 @@
   <div>
 
     <div ng-repeat="file in $flow.files" class="transfer-box">
-      {{file.relativePath}} ({{file.size}}bytes)
+      {{file.relativePath}} ({{file.size}}bytes) - Time remaining: {{formatTimeRemaining(file.timeRemaining())}}
       <div class="progress progress-striped" ng-class="{active: file.isUploading()}">
         <div class="progress-bar" role="progressbar"
              aria-valuenow="{{file.progress() * 100}}"

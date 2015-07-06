@@ -21,7 +21,7 @@ config([
     forceChunkSize: true,
     preprocess: function (chunk) {
       var blob = chunk.fileObj.file.slice(chunk.startByte, chunk.endByte);
-      readFile(blob);
+      chunk.fileObj.readFile(blob);
       var timer = setInterval(function () {
         if (document.getElementById('fileContent').value) {
           clearInterval(timer);
@@ -46,7 +46,7 @@ config([
   $scope.currentFile = '';
 
   $scope.initUpload = function (file, event, flow) {
-    var mainHeaders = {'x-xsrf-token': 'e9819baa2f30e08748c2dacfb59ac3c70c6e2029'};
+    var mainHeaders = {'x-xsrf-token': 'e8ece16f3a66c45719fccf275b6e9554172ddde1'};
     $scope.currentFile = file;
     $http({
       method: 'POST',
@@ -75,6 +75,21 @@ config([
   };
 
   $scope.complete = function (file, event, flow) {
+    // console.log('COMPLETE');
     document.getElementById('fileContent').value = '';
+  };
+
+  $scope.formatTimeRemaining = function (seconds) {
+    if (seconds != Number.POSITIVE_INFINITY) {
+      var totalSec = seconds,
+          hours = parseInt( totalSec / 3600 ) % 24,
+          minutes = parseInt( totalSec / 60 ) % 60,
+          seconds = parseInt(totalSec % 60, 10);
+
+      var result = (hours < 10 ? '0' + hours : hours) + ':' + (minutes < 10 ? '0' + minutes : minutes) + ':' + (seconds  < 10 ? '0' + seconds : seconds);
+
+      return result;
+    }
+    return '00:00:00';
   };
 }]);;

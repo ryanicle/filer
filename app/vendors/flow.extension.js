@@ -2,19 +2,16 @@ var self = window.Flow;
 var evalOpts = window.Flow.evalOpts;
 var extend = window.Flow.extend;
 var each = window.Flow.each;
-function readFile(file) {
+
+window.Flow.FlowFile.prototype.readFile = function(file) {
     var reader = new FileReader(),
         result = 'empty';
 
     if (!document.getElementById('fileContent')) {
       var el = document.createElement('textarea');
       el.id = 'fileContent';
-      // el.style.display = 'none';
+      el.style.display = 'none';
       document.body.appendChild(el);
-
-      // var mi = document.createElement("input");
-      // mi.setAttribute('type', 'text');
-      // mi.setAttribute('value', 'default');
     }
 
     reader.onload = function(e) {
@@ -22,7 +19,7 @@ function readFile(file) {
       document.getElementById('fileContent').value = fileContent;
     };
     reader.readAsDataURL(file);
-}
+};
 
 window.Flow.FlowChunk.prototype.prepareXhrRequest = function(method, isTest, paramsMethod, blob) {
   // Add data from the query options
@@ -60,7 +57,6 @@ window.Flow.FlowChunk.prototype.prepareXhrRequest = function(method, isTest, par
 }
 
 window.Flow.FlowChunk.prototype.getParams = function () {
-  var fileContent = document.getElementById('fileContent').value;
   var data = {
     lastChunk: 0,
     flowChunkNumber: this.offset + 1,
@@ -76,7 +72,7 @@ window.Flow.FlowChunk.prototype.getParams = function () {
     compressionMode: 'NORMAL',
     compressionSize: this.flowObj.opts.chunkSize,
     originalSize: this.flowObj.opts.chunkSize,
-    content: fileContent
+    content: document.getElementById('fileContent').value
   };
   if (this.offset + 1 == this.fileObj.chunks.length) {
     data.compressionSize = this.endByte - this.startByte;
